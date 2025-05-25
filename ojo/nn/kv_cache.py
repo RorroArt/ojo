@@ -3,12 +3,19 @@ KV Cache management.
 """
 import jax
 import jax.numpy as jnp
+from typing import Optional, Tuple
 
 from functools import partial
 from einops import rearrange
 
 @partial(jax.jit, donate_argnums=(0, 1))
-def update_kv_cache(k_cache, v_cache, new_k, new_v, starting_pos=None):
+def update_kv_cache(
+    k_cache: jnp.ndarray, 
+    v_cache: jnp.ndarray, 
+    new_k: jnp.ndarray, 
+    new_v: jnp.ndarray, 
+    starting_pos: Optional[jnp.ndarray] = None
+) -> Tuple[jnp.ndarray, jnp.ndarray]:
     """
     Updates the KV cache with a new KV pair.
 
@@ -31,7 +38,12 @@ def update_kv_cache(k_cache, v_cache, new_k, new_v, starting_pos=None):
     return k_updated, v_updated
 
 
-def extract_relevant_kv_cache(k_cache, v_cache, seq_len, starting_pos=None):
+def extract_relevant_kv_cache(
+    k_cache: jnp.ndarray, 
+    v_cache: jnp.ndarray, 
+    seq_len: int, 
+    starting_pos: Optional[jnp.ndarray] = None
+) -> Tuple[jnp.ndarray, jnp.ndarray]:
     """
     Extracts the relevant KV cache for the given sequence length, for attention computation.
     

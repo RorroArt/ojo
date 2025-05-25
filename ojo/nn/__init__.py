@@ -1,1 +1,1 @@
-from ojo.nn.kv_cache import update_kv_cache
+from ojo.nn.kv_cache import update_kv_cache, extract_relevant_kv_cache
