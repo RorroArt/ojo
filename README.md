@@ -14,12 +14,13 @@ Other than the implementation of the models, you might be wondering what kind of
 6. Tools for model parallelism?
 
 
-## Current TODO
+## Current Roadmap 
 
 * Implement the building blocks (Attention, mlps, norms...)
     - KVCache initial
 * Implement and run Llama 3.2
     - Weight conversion
+* Implement NanoGPT
 * Block tests
     - Start building tests for future implementations
     - Symbolic shape checking
@@ -35,4 +36,3 @@ Other than the implementation of the models, you might be wondering what kind of
 * Paged Attention
     - Pallas triton backend
 
-(I gotta lock in)
