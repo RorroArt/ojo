@@ -28,9 +28,12 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64)
+        
         # Run attention
         output, updated_k_cache, updated_v_cache = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq
         )
         
         # Check output shape
@@ -62,12 +65,15 @@ class TestGQAttention:
         k_cache = jnp.ones((cache_len, NKVH, HD)) * 0.1
         v_cache = jnp.ones((cache_len, NKVH, HD)) * 0.1
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.8 + 0.6j)
+        
         # Save copies for comparison (due to donation)
         k_cache_orig = k_cache.copy()
         v_cache_orig = v_cache.copy()
         
         output, updated_k_cache, updated_v_cache = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj,
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq,
             starting_pos=starting_pos
         )
         
@@ -104,9 +110,12 @@ class TestGQAttention:
         k_cache = jnp.ones((cache_len, NKVH, HD)) * 0.5
         v_cache = jnp.ones((cache_len, NKVH, HD)) * 0.3
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.9 + 0.4j)
+        
         # Test without mask first
         output_no_mask, _, _ = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj
+            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj, cis_freq
         )
         
         # Create a mask that blocks multiple positions to create a stronger effect
@@ -118,7 +127,7 @@ class TestGQAttention:
         
         # Test with mask (no starting_pos)
         output_with_mask, _, _ = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj,
+            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj, cis_freq,
             mask=mask
         )
         
@@ -150,12 +159,15 @@ class TestGQAttention:
         k_cache = jnp.ones((cache_len, NKVH, HD))
         v_cache = jnp.ones((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.7 + 0.7j)
+        
         # Create a causal mask
         mask = jnp.triu(jnp.full((max_L, max_L), -jnp.inf), k=1)
         
         # Test with mask and starting_pos
         output, _, _ = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj,
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq,
             mask=mask, starting_pos=starting_pos
         )
         
@@ -186,14 +198,17 @@ class TestGQAttention:
             k_cache = jnp.ones((cache_len, NKVH, HD)) * 0.3
             v_cache = jnp.ones((cache_len, NKVH, HD)) * 0.7
             
+            # RoPE frequencies for current sequence length
+            cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.6 + 0.8j)
+            
             # Test without mask
             output_no_mask, _, _ = gq_attention(
-                x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj
+                x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj, cis_freq
             )
             
             # Test with mask
             output_with_mask, _, _ = gq_attention(
-                x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj,
+                x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj, cis_freq,
                 mask=mask
             )
             
@@ -224,6 +239,9 @@ class TestGQAttention:
         k_cache = jnp.ones((cache_len, NKVH, HD))
         v_cache = jnp.ones((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.5 + 0.9j)
+        
         # Create a mask that has different values at different positions
         mask = jnp.zeros((max_L, max_L))
         mask = mask.at[0, 2].set(-jnp.inf)  # Block position (0,2)
@@ -234,7 +252,7 @@ class TestGQAttention:
             starting_pos_array = jnp.array(starting_pos, dtype=jnp.int32)
             
             output, _, _ = gq_attention(
-                x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj,
+                x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj, cis_freq,
                 mask=mask, starting_pos=starting_pos_array
             )
             
@@ -263,10 +281,13 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.8 + 0.6j)
+        
         custom_scale = jnp.array(0.25)
         
         output, _, _ = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj,
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq,
             scale=custom_scale
         )
         
@@ -289,8 +310,11 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.9 + 0.4j)
+        
         output, updated_k_cache, updated_v_cache = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq
         )
         
         # Check that grouping ratio is correct
@@ -321,8 +345,11 @@ class TestGQAttention:
             k_cache = jnp.zeros((cache_len, NKVH, HD), dtype=dtype)
             v_cache = jnp.zeros((cache_len, NKVH, HD), dtype=dtype)
             
+            # RoPE frequencies (complex64 is standard for RoPE)
+            cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.7 + 0.7j)
+            
             output, updated_k_cache, updated_v_cache = gq_attention(
-                x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj
+                x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq
             )
             
             assert output.dtype == dtype
@@ -345,9 +372,12 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.6 + 0.8j)
+        
         # Test that the function works without JIT first
         output_no_jit, updated_k_cache_no_jit, updated_v_cache_no_jit = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj
+            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj, cis_freq
         )
         
         # For now, just test that the function works without JIT
@@ -373,8 +403,11 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.5 + 0.5j)
+        
         output, updated_k_cache, updated_v_cache = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq
         )
         
         # Check that grouping ratio is 1 (no grouping)
@@ -400,8 +433,11 @@ class TestGQAttention:
             k_cache = jnp.zeros((cache_len, NKVH, HD))
             v_cache = jnp.zeros((cache_len, NKVH, HD))
             
+            # RoPE frequencies for current sequence length
+            cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.8 + 0.6j)
+            
             output, updated_k_cache, updated_v_cache = gq_attention(
-                x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj
+                x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq
             )
             
             assert output.shape == (L, D)
@@ -422,12 +458,15 @@ class TestGQAttention:
         v_proj = jnp.ones((D, NKVH * HD)) * 0.1
         o_proj = jnp.ones((NH * HD, D)) * 0.1
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.9 + 0.4j)
+        
         # First call
         k_cache1 = jnp.zeros((cache_len, NKVH, HD))
         v_cache1 = jnp.zeros((cache_len, NKVH, HD))
         
         output1, updated_k_cache1, updated_v_cache1 = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache1, v_cache1, o_proj
+            x, q_proj, k_proj, v_proj, k_cache1, v_cache1, o_proj, cis_freq
         )
         
         # Second call with same inputs but different cache objects
@@ -435,7 +474,7 @@ class TestGQAttention:
         v_cache2 = jnp.zeros((cache_len, NKVH, HD))
         
         output2, updated_k_cache2, updated_v_cache2 = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache2, v_cache2, o_proj
+            x, q_proj, k_proj, v_proj, k_cache2, v_cache2, o_proj, cis_freq
         )
         
         # Results should be identical
@@ -460,8 +499,11 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.7 + 0.7j)
+        
         output, updated_k_cache, updated_v_cache = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq
         )
         
         assert output.shape == (L, D)
@@ -485,8 +527,11 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.6 + 0.8j)
+        
         output, updated_k_cache, updated_v_cache = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq
         )
         
         # Check that grouping ratio is correct
@@ -512,10 +557,13 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.5 + 0.9j)
+        
         zero_scale = jnp.array(0.0)
         
         output, _, _ = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj,
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq,
             scale=zero_scale
         )
         
@@ -538,8 +586,11 @@ class TestGQAttention:
         k_cache = jnp.zeros((cache_len, NKVH, HD))
         v_cache = jnp.zeros((cache_len, NKVH, HD))
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.8 + 0.6j)
+        
         output, updated_k_cache, updated_v_cache = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj
+            x, q_proj, k_proj, v_proj, k_cache, v_cache, o_proj, cis_freq
         )
         
         assert output.shape == (L, D)
@@ -574,18 +625,21 @@ class TestGQAttention:
         k_cache = jnp.ones((cache_len, NKVH, HD)) * 0.4
         v_cache = jnp.ones((cache_len, NKVH, HD)) * 0.6
         
+        # RoPE frequencies
+        cis_freq = jnp.ones((L, HD // 2), dtype=jnp.complex64) * (0.4 + 0.9j)
+        
         # Create a proper causal mask for max_L x max_L
         causal_mask = jnp.triu(jnp.full((max_L, max_L), -jnp.inf), k=1)
         
         # Test with causal mask and starting position
         output_causal, updated_k_cache, updated_v_cache = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj,
+            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj, cis_freq,
             mask=causal_mask, starting_pos=starting_pos
         )
         
         # Test without mask for comparison
         output_no_mask, _, _ = gq_attention(
-            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj,
+            x, q_proj, k_proj, v_proj, k_cache.copy(), v_cache.copy(), o_proj, cis_freq,
             starting_pos=starting_pos
         )
         
