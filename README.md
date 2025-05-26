@@ -16,15 +16,10 @@ Other than the implementation of the models, you might be wondering what kind of
 
 ## Current Roadmap 
 
-* Implement the building blocks (Attention, mlps, norms...)
-    - KVCache initial
+
 * Implement and run Llama 3.2
     - Weight conversion
-* Implement NanoGPT
-* Block tests
-    - Start building tests for future implementations
-    - Symbolic shape checking
-    - KVCache profiling and improvements
+* Implement and run NanoGPT
 * Layer hooks (Hooks only for the output of layers)
     - AST patcher
 * Hooks test
