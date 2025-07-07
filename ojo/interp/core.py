@@ -1,3 +1,8 @@
+"""
+Inspired by: https://github.com/jax-ml/oryx/blob/main/oryx/core/interpreters/harvest.py
+"""
+
+
 import jax
 import jax.numpy as jnp
 import jax.extend as jex
